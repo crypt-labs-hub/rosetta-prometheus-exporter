@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   exporter:
     build:
@@ -10,3 +8,18 @@ services:
     ports:
       - "9101:9101"
     entrypoint: ["/bin/bash", "./scripts/entrypoint.sh"]
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./crates/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./tmp/prometheus/data:/prometheus
+    ports:
+      - "9090:9090"
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - ./tmp/grafana/data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
