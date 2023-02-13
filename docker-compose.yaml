@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  exporter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app
+    ports:
+      - "9101:9101"
+    entrypoint: ["/bin/bash", "./scripts/entrypoint.sh"]

@@ -26,7 +26,7 @@ func Get() *Config {
 func (c *Config) GetRosettaUrl() (*url.URL, error) {
 	u, err := url.Parse(c.rosettaURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	return u, err
 }
@@ -34,7 +34,7 @@ func (c *Config) GetRosettaUrl() (*url.URL, error) {
 func (c *Config) GetNetworkUrl() (*url.URL, error) {
 	u, err := url.Parse(c.networkURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	return u, err
 }
