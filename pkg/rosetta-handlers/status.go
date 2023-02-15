@@ -28,5 +28,15 @@ func GetStatus(cfg *config.Config) (*types.NetworkIdentifier, *types.NetworkStat
 		return nil, nil, error.Err
 	}
 
+	// Set network values
+	if cfg.GetNewtork() == "" {
+		cfg.SetNetwork(primaryNetwork.Network)
+	}
+
+	// Set block chain values
+	if cfg.GetBlockchain() == "" {
+		cfg.SetBlockchain(primaryNetwork.Blockchain)
+	}
+
 	return primaryNetwork, networkStatus, nil
 }
