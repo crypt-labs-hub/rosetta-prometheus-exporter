@@ -2,16 +2,16 @@ package config
 
 import (
 	"flag"
+	"github.com/coinbase/rosetta-sdk-go/types"
 	"log"
 	"net/url"
 	"os"
 )
 
 type Config struct {
-	rosettaURL string
-	networkURL string
-	blockchain string
-	network    string
+	rosettaURL     string
+	networkURL     string
+	primaryNetwork *types.NetworkIdentifier
 }
 
 func Get() *Config {
@@ -41,18 +41,10 @@ func (c *Config) GetNetworkUrl() (*url.URL, error) {
 	return u, err
 }
 
-func (c *Config) GetBlockchain() string {
-	return c.blockchain
+func (c *Config) GetPrimaryNetwork() *types.NetworkIdentifier {
+	return c.primaryNetwork
 }
 
-func (c *Config) GetNewtork() string {
-	return c.network
-}
-
-func (c *Config) SetBlockchain(blockchain string) {
-	c.blockchain = blockchain
-}
-
-func (c *Config) SetNetwork(network string) {
-	c.network = network
+func (c *Config) SetNetwork(primaryNetwork *types.NetworkIdentifier) {
+	c.primaryNetwork = primaryNetwork
 }
