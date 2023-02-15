@@ -4,7 +4,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"log"
 	"rosetta_exporter/pkg/config"
-	rosettastatus "rosetta_exporter/pkg/rosetta-handlers"
+	"rosetta_exporter/pkg/rosetta"
+	"time"
 )
 
 var (
@@ -51,11 +52,18 @@ var (
 
 type Exporter struct {
 	cfg *config.Config
+	rh  *rosettahandlers.RosettaHandler
 }
 
 func NewExporter(cfg *config.Config) *Exporter {
+	rh, err := rosettahandlers.NewRosettaHandler(cfg)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
 	return &Exporter{
 		cfg: cfg,
+		rh:  rh,
 	}
 }
 
@@ -70,9 +78,8 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	// Get network status
-	primaryNetwork, networkStatus, err := rosettastatus.GetStatus(e.cfg)
+	networkStatus, err := e.rh.GetStatus()
 	if err != nil {
-
 		log.Println(err)
 		return
 	}
@@ -84,8 +91,8 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			"blockchain info",
 			nil,
 			prometheus.Labels{
-				"blockchain_name": primaryNetwork.Blockchain,
-				"network_name":    primaryNetwork.Network,
+				"blockchain_name": e.rh.PrimaryNetwork.Blockchain,
+				"network_name":    e.rh.PrimaryNetwork.Network,
 			},
 		),
 		prometheus.GaugeValue,
@@ -158,6 +165,84 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		),
 		prometheus.GaugeValue,
 		float64(*networkStatus.SyncStatus.TargetIndex),
+	)
+
+	// Get current block
+	block, err := e.rh.GetBlock(networkStatus.CurrentBlockIdentifier)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// set number of txs
+	ch <- prometheus.MustNewConstMetric(
+		prometheus.NewDesc(
+			"block_tx_count",
+			"block transaction count",
+			nil,
+			prometheus.Labels{
+				"block_hash": block.BlockIdentifier.Hash,
+			},
+		),
+		prometheus.GaugeValue,
+		float64(len(block.Transactions)),
+	)
+
+	// Get blocks for sample size
+	blockCount := 0
+	txCount := 0
+	earliestTimestamp := time.UnixMilli(block.Timestamp)
+	currTimestamp := time.UnixMilli(block.Timestamp)
+	parentBlockId := block.ParentBlockIdentifier
+	sampleSize := e.cfg.GetSampleSize()
+	for blockCount < sampleSize {
+		// Get parent block
+		parentBlock, err := e.rh.GetBlock(parentBlockId)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		// change to parent block
+		parentBlockId = parentBlock.ParentBlockIdentifier
+		// set timestamp
+		earliestTimestamp = time.UnixMilli(parentBlock.Timestamp)
+		// increase tx count
+		txCount += len(parentBlock.Transactions)
+		// increment block count
+		blockCount++
+	}
+
+	// calculate time between max and min block in sample
+	blockTimeRangeInSec := currTimestamp.Sub(earliestTimestamp).Seconds()
+
+	// calculate block rate
+	blockRate := float64(blockCount) / blockTimeRangeInSec
+
+	// set block rate
+	ch <- prometheus.MustNewConstMetric(
+		prometheus.NewDesc(
+			"block_rate",
+			"block rate (blocks/sec)",
+			nil,
+			nil,
+		),
+		prometheus.GaugeValue,
+		blockRate,
+	)
+
+	// calculate tx rate
+	txRate := float64(txCount) / blockTimeRangeInSec
+
+	// set block rate
+	ch <- prometheus.MustNewConstMetric(
+		prometheus.NewDesc(
+			"transaction_rate",
+			"transaction rate(tx/sec)",
+			nil,
+			nil,
+		),
+		prometheus.GaugeValue,
+		txRate,
 	)
 
 }

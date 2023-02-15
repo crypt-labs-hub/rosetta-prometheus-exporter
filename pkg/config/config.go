@@ -5,11 +5,13 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strconv"
 )
 
 type Config struct {
 	rosettaURL string
 	networkURL string
+	sampleSize string
 }
 
 func Get() *Config {
@@ -17,6 +19,8 @@ func Get() *Config {
 
 	flag.StringVar(&conf.rosettaURL, "rosettaurl", os.Getenv("ROSETTA_URL"), "Rosetta url")
 	flag.StringVar(&conf.networkURL, "networkurl", os.Getenv("NETWORK_URL"), "Network Public url")
+
+	flag.StringVar(&conf.sampleSize, "samplesize", os.Getenv("SAMPLE_SIZE"), "Sample size for rate calc")
 
 	flag.Parse()
 
@@ -37,4 +41,13 @@ func (c *Config) GetNetworkUrl() (*url.URL, error) {
 		log.Println(err)
 	}
 	return u, err
+}
+
+func (c *Config) GetSampleSize() int {
+	s, err := strconv.Atoi(c.sampleSize)
+	if err != nil {
+		log.Println(err)
+		return 0
+	}
+	return s
 }
