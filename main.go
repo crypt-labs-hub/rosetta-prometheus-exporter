@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"rosetta_exporter/pkg/config"
-	prometheusexporter "rosetta_exporter/pkg/prometheus-handlers"
+	prometheusexporter "rosetta_exporter/pkg/prometheus"
 
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
