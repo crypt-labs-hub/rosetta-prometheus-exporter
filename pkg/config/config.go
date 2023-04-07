@@ -12,6 +12,8 @@ type Config struct {
 	rosettaURL string
 	networkURL string
 	sampleSize string
+	blockchain string
+	network    string
 }
 
 func Get() *Config {
@@ -50,4 +52,20 @@ func (c *Config) GetSampleSize() int {
 		return 0
 	}
 	return s
+}
+
+func (c *Config) GetBlockchain() string {
+	return c.blockchain
+}
+
+func (c *Config) GetNewtork() string {
+	return c.network
+}
+
+func (c *Config) SetBlockchain(blockchain string) {
+	c.blockchain = blockchain
+}
+
+func (c *Config) SetNetwork(network string) {
+	c.network = network
 }

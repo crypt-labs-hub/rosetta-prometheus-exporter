@@ -230,6 +230,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		blockRate,
 	)
 
+	// TODO: tx endpoint might have other_txs that are not included
 	// calculate tx rate
 	txRate := float64(txCount) / blockTimeRangeInSec
 
