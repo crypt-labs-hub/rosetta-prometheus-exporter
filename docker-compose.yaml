@@ -5,6 +5,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./:/app
+    env_file:
+      - .env
     ports:
       - "9101:9101"
     extra_hosts:
