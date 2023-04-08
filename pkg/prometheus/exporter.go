@@ -8,74 +8,86 @@ import (
 	"time"
 )
 
-var (
-	blockchainInfo = prometheus.NewDesc(
-		"blockchain_info",
-		"blockchain info",
-		nil,
-		prometheus.Labels{
-			"blockchain_name": "",
-			"network_name":    "",
-		},
-	)
-
-	rosettaInfo = prometheus.NewDesc(
-		"rosetta_info",
-		"Version of rosetta",
-		nil, nil,
-	)
-
-	nodeInfo = prometheus.NewDesc(
-		"node_info",
-		"Version of the node",
-		nil, nil,
-	)
-
-	currentBlockIndex = prometheus.NewDesc(
-		"curr_block_index",
-		"Index of the current block",
-		nil, nil,
-	)
-
-	currentBlockTimestamp = prometheus.NewDesc(
-		"curr_block_timestamp",
-		"Timestamp of current block",
-		nil, nil,
-	)
-
-	syncStatus = prometheus.NewDesc(
-		"sync_status",
-		"Sync Status",
-		nil, nil,
-	)
-)
-
 type Exporter struct {
+	// cfg configuration passed to the exporter
 	cfg *config.Config
-	rh  *rosettahandlers.RosettaHandler
+	// rh rosetta handler to connect with the rosetta endpoints
+	rh *rosettahandlers.RosettaHandler
+	// blockchainInfo the details of the blockchain including name and network
+	blockchainInfo *prometheus.Desc
+	// rosettaInfo the details about rosetta including version
+	rosettaInfo *prometheus.Desc
+	// nodeInfo node level details including version
+	nodeInfo *prometheus.Desc
+	// currentBlockIndex the latest block available at the node
+	currentBlockIndex *prometheus.Desc
+	// currentBlockTimestamp the timestamp on the latest block on the node
+	currentBlockTimestamp *prometheus.Desc
+	// syncStatus the difference between current block and max available block
+	syncStatus *prometheus.Desc
 }
 
+// NewExporter constructor for exporter
+// initializes every descriptor and returns a pointer to the exporter
 func NewExporter(cfg *config.Config) *Exporter {
+	// Get the rosetta handler
 	rh, err := rosettahandlers.NewRosettaHandler(cfg)
 	if err != nil {
-		log.Println(err)
+		log.Panicf("Rosetta handler initialize error::%s", err)
 		return nil
 	}
+	// return pointer to exporter
 	return &Exporter{
 		cfg: cfg,
 		rh:  rh,
+		blockchainInfo: prometheus.NewDesc(
+			"blockchain_info",
+			"blockchain info",
+			nil,
+			prometheus.Labels{
+				"blockchain_name": "",
+				"network_name":    "",
+			},
+		),
+		rosettaInfo: prometheus.NewDesc(
+			"rosetta_info",
+			"Version of rosetta",
+			nil, nil,
+		),
+		nodeInfo: prometheus.NewDesc(
+			"node_info",
+			"Version of the node",
+			nil, nil,
+		),
+		currentBlockIndex: prometheus.NewDesc(
+			"curr_block_index",
+			"Index of the current block",
+			nil, nil,
+		),
+		currentBlockTimestamp: prometheus.NewDesc(
+			"curr_block_timestamp",
+			"Timestamp of current block",
+			nil, nil,
+		),
+		syncStatus: prometheus.NewDesc(
+			"sync_status",
+			"Sync Status",
+			nil, nil,
+		),
 	}
 }
 
+// Describe set descriptors for all prometheus desc channels
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
-	ch <- blockchainInfo
-	ch <- rosettaInfo
-	ch <- nodeInfo
-	ch <- currentBlockIndex
-	ch <- currentBlockTimestamp
-	ch <- syncStatus
+	ch <- e.blockchainInfo
+	ch <- e.rosettaInfo
+	ch <- e.nodeInfo
+	ch <- e.currentBlockIndex
+	ch <- e.currentBlockTimestamp
+	ch <- e.syncStatus
 }
 
+// Collect implment the required collection function for all collectors
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	// Get network status
 	networkStatus, err := e.rh.GetStatus()
