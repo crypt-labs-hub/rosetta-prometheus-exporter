@@ -9,13 +9,17 @@ import (
 )
 
 type RosettaHandler struct {
+	// PrimaryNetwork identifier for blockchain network and subnetworks
 	PrimaryNetwork *types.NetworkIdentifier
-	fetcher        *fetcher.Fetcher
+	// fetcher request handler for retrieving data from chain
+	fetcher *fetcher.Fetcher
 }
 
+// NewRosettaHandler constructor for rosetta connection and configuration handler
 func NewRosettaHandler(cfg *config.Config) (*RosettaHandler, error) {
 	ctx := context.Background()
 
+	// initialize the rosetta handler
 	rosettaHandler := RosettaHandler{}
 
 	// Get Rosetta URL
@@ -41,6 +45,7 @@ func NewRosettaHandler(cfg *config.Config) (*RosettaHandler, error) {
 	return &rosettaHandler, nil
 }
 
+// GetStatus retrieve the status from rosetta /network/status endpoint
 func (r *RosettaHandler) GetStatus() (*types.NetworkStatusResponse, error) {
 	ctx := context.Background()
 
@@ -53,9 +58,11 @@ func (r *RosettaHandler) GetStatus() (*types.NetworkStatusResponse, error) {
 	return networkStatus, nil
 }
 
+// GetBlock retrieve the block from the rosetta /network/block endpoint
 func (r *RosettaHandler) GetBlock(blockIdentifier *types.BlockIdentifier) (*types.Block, error) {
 	ctx := context.Background()
 
+	// fetch the block with retry
 	block, e := r.fetcher.BlockRetry(
 		ctx,
 		r.PrimaryNetwork,

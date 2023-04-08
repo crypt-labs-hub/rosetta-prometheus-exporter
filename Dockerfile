@@ -5,7 +5,7 @@
 ##
 
 # Base image
-FROM golang:1.20.0 AS build
+FROM golang:alpine AS build
 LABEL maintainer="saqib.yawar@devopsways.com"
 
 # Working directory
@@ -30,7 +30,7 @@ FROM scratch
 
 WORKDIR /
 
-COPY --from=build bin/exporter /exporter
+COPY --from=build /app/bin/exporter /exporter
 
 EXPOSE 9101
 
