@@ -557,7 +557,7 @@
           "refId": "A"
         }
       ],
-      "title": "Current Block Index",
+      "title": "Current Block Timestamp",
       "type": "stat"
     },
     {
